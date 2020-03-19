@@ -1,0 +1,42 @@
+language: cpp
+
+go:
+- 1.13
+
+os:
+- linux
+- osx
+compiler:
+- clang
+arch:
+- amd64
+- arm64
+install:
+- git clone https://github.com/herumi/bls.git $TRAVIS_BUILD_DIR/../bls
+- git clone https://github.com/herumi/mcl.git $TRAVIS_BUILD_DIR/../mcl
+
+before_script:
+- if [ "$TRAVIS_OS_NAME" = "osx" ];   then GOOS=darwin     ; fi
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then GOOS=linux      ; fi
+- GOARCH=$TRAVIS_CPU_ARCH
+- ARCHIVE="bls-go-binary_""$GOOS""_""$GOARCH"".tgz"
+
+script:
+- make
+
+before_deploy:
+- tar czvf "$TRAVIS_BUILD_DIR/$ARCHIVE" "bls/lib/$GOOS/$GOARCH/libbls384_256.a"
+
+after_deploy:
+- rm -rf "$TRAVIS_BUILD_DIR/$ARCHIVE"
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: XUwScehd8dmxDaGq/jbWMWMpSIQKBYbUGVmkZfMNHAqEfsXvZQr4chPf0aRRgUbdWWOxgBdnZ2J/xSG5T2bwtIfmDvj0r3B0VdkQTNziRgAzyif/vg4K9Sj92/52PyLAr24/hSDrwrXpLLWIVrBP6Pu/ewd+Z+AWJuSbAflm4ErEmpgqEsd3ox97gGOrEmAmVu1vwnFr7li7xy52UzZ1OpZVaTl/rtrdMewkpuzSPAixLU1nMjuWeHP2dSoK6Qki67VVvhSKnNLA+yIfP6hmSNs+JrvM1TwnQxKoF+69FSZgoczmjn2vShiHGT8J4Ngr5HuHHalJtyHXiFgioBJXMQu6HeKikASiyiqakGAN8Uw8TQ58nz89Rtb4BPzvjaQ0fgRGY2xNXGfpd0NbFR2wXD4tkh88ed+8Yh2oqAsjhvbJtmZWLXPX3YePUndNyMlqOr3lQSaVYjOhIE9WY1LbT7xnHXRWmgNC6QPV18N/7nCWD4RITDXAd1oDwj+k+AkZ/WHb77pY3ykHAeUB9lq8Xe1CFjnAd2pk+xMqs96P8WyPcOQeCEI3/0MaLMaUXTaPq6zFebH+p4Pf1uHu9cr2kkitQdtuzUgP2Hc8FcF08VG7ocep6suq70rTxM5667bBe8hqLfKjyWesnYeFAYlw/VQJ5zDIo8VqT4VZThTsBr0=
+  file: "$TRAVIS_BUILD_DIR/$ARCHIVE"
+  draft: true
+  on:
+    repo: traian-schiau/bls-go-binary
+    all_branches: true
